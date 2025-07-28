@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { ShoppingCart, ArrowLeft, Plus, Minus } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Plus, Minus, Trash2 } from "lucide-react";
 
 const RestaurantApp = () => {
   const [currentView, setCurrentView] = useState("home");
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [cart, setCart] = useState([]);
 
-  // Hardcoded restaurant data
   const restaurants = [
     {
       id: 1,
@@ -176,6 +175,10 @@ const RestaurantApp = () => {
     }
   };
 
+  const removeItemCompletely = (itemId) => {
+    setCart(cart.filter((cartItem) => cartItem.id !== itemId));
+  };
+
   const getCartItemQuantity = (itemId) => {
     const item = cart.find((cartItem) => cartItem.id === itemId);
     return item ? item.quantity : 0;
@@ -190,6 +193,28 @@ const RestaurantApp = () => {
   const getTotalItems = () => {
     return cart.reduce((total, item) => total + item.quantity, 0);
   };
+
+  const RestaurantCard = ({ restaurant }) => (
+    <div
+      className="bg-white rounded-lg shadow-md p-4 sm:p-6 cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={() => {
+        setSelectedRestaurant(restaurant);
+        setCurrentView("menu");
+      }}
+    >
+      <div className="text-4xl sm:text-6xl mb-3 sm:mb-4 text-center">
+        {restaurant.image}
+      </div>
+      <h3 className="text-lg sm:text-xl font-bold mb-2">{restaurant.name}</h3>
+      <p className="text-gray-600 mb-2 text-sm sm:text-base">
+        {restaurant.cuisine}
+      </p>
+      <div className="flex justify-between items-center text-sm sm:text-base">
+        <span className="text-yellow-500">⭐ {restaurant.rating}</span>
+        <span className="text-gray-500">{restaurant.deliveryTime}</span>
+      </div>
+    </div>
+  );
 
   const MenuItem = ({ item }) => (
     <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
@@ -230,24 +255,50 @@ const RestaurantApp = () => {
       </div>
     </div>
   );
-  const RestaurantCard = ({ restaurant }) => (
-    <div
-      className="bg-white rounded-lg shadow-md p-4 sm:p-6 cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => {
-        setSelectedRestaurant(restaurant);
-        setCurrentView("menu");
-      }}
-    >
-      <div className="text-4xl sm:text-6xl mb-3 sm:mb-4 text-center">
-        {restaurant.image}
+
+  const CartItem = ({ item }) => (
+    <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 mb-3 sm:mb-4">
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex-1">
+          <h4 className="text-base sm:text-lg font-semibold mb-1">
+            {item.name}
+          </h4>
+          <p className="text-sm text-gray-600">${item.price} each</p>
+        </div>
+        <button
+          onClick={() => removeItemCompletely(item.id)}
+          className="text-red-500 hover:text-red-700 p-1 touch-manipulation"
+        >
+          <Trash2 size={18} />
+        </button>
       </div>
-      <h3 className="text-lg sm:text-xl font-bold mb-2">{restaurant.name}</h3>
-      <p className="text-gray-600 mb-2 text-sm sm:text-base">
-        {restaurant.cuisine}
-      </p>
-      <div className="flex justify-between items-center text-sm sm:text-base">
-        <span className="text-yellow-500">⭐ {restaurant.rating}</span>
-        <span className="text-gray-500">{restaurant.deliveryTime}</span>
+
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => removeFromCart(item.id)}
+            className="bg-red-500 text-white p-2 rounded hover:bg-red-600 touch-manipulation"
+          >
+            <Minus size={16} />
+          </button>
+
+          <span className="font-semibold text-base sm:text-lg min-w-8 text-center">
+            {item.quantity}
+          </span>
+
+          <button
+            onClick={() => addToCart(item)}
+            className="bg-green-500 text-white p-2 rounded hover:bg-green-600 touch-manipulation"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+
+        <div className="text-right">
+          <p className="font-bold text-lg text-green-600">
+            ${(item.price * item.quantity).toFixed(2)}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -256,15 +307,18 @@ const RestaurantApp = () => {
     <div>
       <header className="bg-red-600 text-white p-4 sm:p-6 mb-6 sm:mb-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl sm:text-3xl font-bold">Tomato</h1>
-          <div className="relative">
+          <h1 className="text-2xl sm:text-3xl font-bold">🍅Tomato</h1>
+          <button
+            onClick={() => setCurrentView("cart")}
+            className="relative hover:bg-red-700 p-2 rounded touch-manipulation"
+          >
             <ShoppingCart size={20} className="sm:w-6 sm:h-6" />
             {getTotalItems() > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs sm:text-sm">
                 {getTotalItems()}
               </span>
             )}
-          </div>
+          </button>
         </div>
       </header>
 
@@ -296,14 +350,17 @@ const RestaurantApp = () => {
               {selectedRestaurant?.name}
             </h1>
           </div>
-          <div className="relative">
+          <button
+            onClick={() => setCurrentView("cart")}
+            className="relative hover:bg-red-700 p-2 rounded touch-manipulation"
+          >
             <ShoppingCart size={20} className="sm:w-6 sm:h-6" />
             {getTotalItems() > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs sm:text-sm">
                 {getTotalItems()}
               </span>
             )}
-          </div>
+          </button>
         </div>
       </header>
 
@@ -354,10 +411,107 @@ const RestaurantApp = () => {
     </div>
   );
 
+  const CartPage = () => (
+    <div>
+      <header className="bg-red-600 text-white p-4 sm:p-6 mb-6 sm:mb-8">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <button
+              onClick={() => setCurrentView("home")}
+              className="hover:bg-red-700 p-2 rounded touch-manipulation"
+            >
+              <ArrowLeft size={20} className="sm:w-6 sm:h-6" />
+            </button>
+            <h1 className="text-lg sm:text-2xl font-bold">Shopping Cart</h1>
+          </div>
+          <div className="text-sm sm:text-base">
+            {getTotalItems()} {getTotalItems() === 1 ? "item" : "items"}
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-3 sm:px-4 pb-20 sm:pb-24">
+        {cart.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🛒</div>
+            <h2 className="text-xl sm:text-2xl font-bold mb-2 text-gray-600">
+              Your cart is empty
+            </h2>
+            <p className="text-gray-500 mb-6">
+              Add some delicious items from our restaurants!
+            </p>
+            <button
+              onClick={() => setCurrentView("home")}
+              className="bg-red-500 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-red-600 touch-manipulation"
+            >
+              Browse Restaurants
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="mb-6">
+              {cart.map((item) => (
+                <CartItem key={item.id} item={item} />
+              ))}
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+              <h3 className="text-lg sm:text-xl font-bold mb-4">
+                Order Summary
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span>Subtotal ({getTotalItems()} items)</span>
+                  <span>${getTotalPrice()}</span>
+                </div>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span>Delivery Fee</span>
+                  <span>$2.99</span>
+                </div>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span>Tax</span>
+                  <span>
+                    ${(parseFloat(getTotalPrice()) * 0.08).toFixed(2)}
+                  </span>
+                </div>
+                <hr className="my-2" />
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span>
+                    $
+                    {(
+                      parseFloat(getTotalPrice()) +
+                      2.99 +
+                      parseFloat(getTotalPrice()) * 0.08
+                    ).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-3 sm:p-4 border-t">
+              <div className="container mx-auto">
+                <button className="bg-green-500 text-white px-4 sm:px-6 py-3 rounded-lg hover:bg-green-600 w-full touch-manipulation font-semibold">
+                  Proceed to Checkout - $
+                  {(
+                    parseFloat(getTotalPrice()) +
+                    2.99 +
+                    parseFloat(getTotalPrice()) * 0.08
+                  ).toFixed(2)}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-100">
       {currentView === "home" && <HomePage />}
       {currentView === "menu" && <MenuPage />}
+      {currentView === "cart" && <CartPage />}
     </div>
   );
 };
